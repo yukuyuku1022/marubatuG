@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>〇×ゲームだよん</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            background-color: #f0f4f8;
+            padding: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .title {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .title h1 {
+            font-size: 3rem;
+            color: #1e40af;
+            font-weight: bold;
+        }
+
+        .settings-panel {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .settings-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .settings-header h2 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .settings-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .setting-group label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: 500;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.875rem;
+        }
+
+        .btn-setting {
+            background: #e5e7eb;
+            color: #374151;
+        }
+
+        .btn-setting:hover {
+            background: #d1d5db;
+        }
+
+        .btn-setting.active {
+            background: #2563eb;
+            color: white;
+        }
+
+        .scoreboard {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .scoreboard h2 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 16px;
+        }
+
+        .score-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 16px;
+            text-align: center;
+        }
+
+        .score-item {
+            padding: 12px;
+            border-radius: 8px;
+        }
+
+        .score-player {
+            background: #ecfdf5;
+        }
+
+        .score-draw {
+            background: #fefce8;
+        }
+
+        .score-cpu {
+            background: #fef2f2;
+        }
+
+        .score-value {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+
+        .score-player .score-value {
+            color: #059669;
+        }
+
+        .score-draw .score-value {
+            color: #d97706;
+        }
+
+        .score-cpu .score-value {
+            color: #dc2626;
+        }
+
+        .score-label {
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+
+        .status-panel {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .status-message {
+            font-size: 1.25rem;
+            font-weight: 600;
+            padding: 16px;
+            border-radius: 8px;
+            display: inline-block;
+            min-width: 200px;
+        }
+
+        .status-normal {
+            background: #e0e7ff;
+            color: #3730a3;
+        }
+
+        .status-winner {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .status-draw {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-thinking {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .game-board {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .board-grid {
+            margin: 0 auto;
+            display: grid;
+            gap: 8px;
+        }
+
+        .board-3x3 {
+            grid-template-columns: repeat(3, 1fr);
+            max-width: 300px;
+        }
+
+        .board-5x5 {
+            grid-template-columns: repeat(5, 1fr);
+            max-width: 400px;
+        }
+
+        .cell {
+            aspect-ratio: 1;
+            border: 2px solid #d1d5db;
+            border-radius: 8px;
+            background: #f9fafb;
+            font-weight: bold;
+            font-size: 2rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .cell:hover {
+            background: #f3f4f6;
+            border-color: #6366f1;
+        }
+
+        .cell.filled-o {
+            background: #dbeafe;
+            border-color: #3b82f6;
+            color: #2563eb;
+        }
+
+        .cell.filled-x {
+            background: #fee2e2;
+            border-color: #ef4444;
+            color: #dc2626;
+        }
+
+        .cell:disabled {
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .board-5x5 .cell {
+            font-size: 1.5rem;
+        }
+
+        .reset-button {
+            display: flex;
+            justify-content: center;
+        }
+
+        .btn-reset {
+            background: #2563eb;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 500;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 1rem;
+        }
+
+        .btn-reset:hover {
+            background: #1d4ed8;
+        }
+
+        .rules-panel {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 24px;
+            margin-top: 24px;
+        }
+
+        .rules-panel h2 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 16px;
+        }
+
+        .rules-panel ul {
+            color: #6b7280;
+            line-height: 1.6;
+            list-style: none;
+            padding: 0;
+        }
+
+        .rules-panel li {
+            margin-bottom: 8px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .settings-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .title h1 {
+                font-size: 2.5rem;
+            }
+
+            .board-grid {
+                max-width: 280px;
+            }
+
+            .board-5x5 {
+                max-width: 350px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- タイトル -->
+        <div class="title">
+            <h1>〇×ゲームだよん</h1>
+        </div>
+
+        <!-- 設定パネル -->
+        <div class="settings-panel">
+            <div class="settings-header">
+                <h2>ゲーム設定</h2>
+            </div>
+            <div class="settings-grid">
+                <div class="setting-group">
+                    <label>ボードサイズ</label>
+                    <div class="button-group">
+                        <button class="btn btn-setting active" id="size-3x3">3×3</button>
+                        <button class="btn btn-setting" id="size-5x5">5×5</button>
+                    </div>
+                </div>
+                <div class="setting-group">
+                    <label>ゲームモード</label>
+                    <div class="button-group">
+                        <button class="btn btn-setting active" id="mode-human">2P</button>
+                        <button class="btn btn-setting" id="mode-cpu">CPU</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- スコアボード -->
+        <div class="scoreboard hidden" id="scoreboard">
+            <h2>スコア</h2>
+            <div class="score-grid">
+                <div class="score-item score-player">
+                    <div class="score-value" id="player-score">0</div>
+                    <div class="score-label">あなた</div>
+                </div>
+                <div class="score-item score-draw">
+                    <div class="score-value" id="draw-score">0</div>
+                    <div class="score-label">引き分け</div>
+                </div>
+                <div class="score-item score-cpu">
+                    <div class="score-value" id="cpu-score">0</div>
+                    <div class="score-label">CPU</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ゲーム状態 -->
+        <div class="status-panel">
+            <div class="status-message status-normal" id="status">○のターン</div>
+        </div>
+
+        <!-- ゲームボード -->
+        <div class="game-board">
+            <div class="board-grid board-3x3" id="game-board"></div>
+        </div>
+
+        <!-- リセットボタン -->
+        <div class="reset-button">
+            <button class="btn-reset" id="reset-btn">
+                新しいゲーム
+            </button>
+        </div>
+
+        <!-- ルール説明 -->
+        <div class="rules-panel">
+            <h2>ルール</h2>
+            <ul>
+                <li>• <strong>3×3:</strong> 縦・横・斜めのいずれかに3個並べると勝利。これで1Pが勝てなかったら雑魚。</li>
+                <li>• <strong>5×5:</strong> 縦・横・斜めのいずれかに4個並べると勝利。これで1Pが勝てなかったら普通に雑魚。</li>
+                <li>• プレイヤーは○、CPUまたは2P目は×を使用</li>
+                <li>• すべてのマスが埋まって勝者が決まらない場合は引き分け。3×3はまあわかるけど5×5でこれなったら馬鹿。</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        class TicTacToeGame {
+            constructor() {
+                this.boardSize = 3;
+                this.gameMode = 'human';
+                this.board = [];
+                this.currentPlayer = '○';
+                this.winner = null;
+                this.isGameActive = true;
+                this.scores = { player: 0, cpu: 0, draws: 0 };
+                this.isThinking = false;
+
+                this.initializeElements();
+                this.bindEvents();
+                this.initBoard();
+            }
+
+            initializeElements() {
+                this.gameBoard = document.getElementById('game-board');
+                this.statusElement = document.getElementById('status');
+                this.scoreboard = document.getElementById('scoreboard');
+                this.playerScore = document.getElementById('player-score');
+                this.drawScore = document.getElementById('draw-score');
+                this.cpuScore = document.getElementById('cpu-score');
+            }
+
+            bindEvents() {
+                document.getElementById('size-3x3').addEventListener('click', () => this.changeSettings(3, this.gameMode));
+                document.getElementById('size-5x5').addEventListener('click', () => this.changeSettings(5, this.gameMode));
+                document.getElementById('mode-human').addEventListener('click', () => this.changeSettings(this.boardSize, 'human'));
+                document.getElementById('mode-cpu').addEventListener('click', () => this.changeSettings(this.boardSize, 'cpu'));
+                document.getElementById('reset-btn').addEventListener('click', () => this.resetGame());
+            }
+
+            changeSettings(newSize, newMode) {
+                this.boardSize = newSize;
+                this.gameMode = newMode;
+                this.scores = { player: 0, cpu: 0, draws: 0 };
+                this.updateSettingsButtons();
+                this.updateScoreboard();
+                this.initBoard();
+            }
+
+            updateSettingsButtons() {
+                // ボードサイズボタン
+                document.getElementById('size-3x3').classList.toggle('active', this.boardSize === 3);
+                document.getElementById('size-5x5').classList.toggle('active', this.boardSize === 5);
+
+                // ゲームモードボタン
+                document.getElementById('mode-human').classList.toggle('active', this.gameMode === 'human');
+                document.getElementById('mode-cpu').classList.toggle('active', this.gameMode === 'cpu');
+
+                // スコアボード表示/非表示
+                this.scoreboard.classList.toggle('hidden', this.gameMode === 'human');
+            }
+
+            initBoard() {
+                this.board = Array(this.boardSize).fill(null).map(() => Array(this.boardSize).fill(''));
+                this.currentPlayer = '○';
+                this.winner = null;
+                this.isGameActive = true;
+                this.isThinking = false;
+
+                this.renderBoard();
+                this.updateStatus();
+            }
+
+            renderBoard() {
+                this.gameBoard.innerHTML = '';
+                this.gameBoard.className = `board-grid board-${this.boardSize}x${this.boardSize}`;
+
+                for (let i = 0; i < this.boardSize; i++) {
+                    for (let j = 0; j < this.boardSize; j++) {
+                        const cell = document.createElement('button');
+                        cell.className = 'cell';
+                        cell.dataset.row = i;
+                        cell.dataset.col = j;
+                        cell.addEventListener('click', () => this.handleCellClick(i, j));
+                        this.gameBoard.appendChild(cell);
+                    }
+                }
+
+                this.updateBoard();
+            }
+
+            updateBoard() {
+                const cells = this.gameBoard.querySelectorAll('.cell');
+                cells.forEach((cell, index) => {
+                    const row = Math.floor(index / this.boardSize);
+                    const col = index % this.boardSize;
+                    const value = this.board[row][col];
+
+                    cell.textContent = value;
+                    cell.className = 'cell';
+                    
+                    if (value === '○') {
+                        cell.classList.add('filled-o');
+                    } else if (value === '×') {
+                        cell.classList.add('filled-x');
+                    }
+
+                    cell.disabled = !this.isGameActive || value !== '' || this.winner || this.isThinking ||
+                        (this.gameMode === 'cpu' && this.currentPlayer === '×');
+                });
+            }
+
+            handleCellClick(row, col) {
+                if (!this.isGameActive || this.board[row][col] !== '' || this.winner || this.isThinking) return;
+                if (this.gameMode === 'cpu' && this.currentPlayer === '×') return;
+
+                this.board[row][col] = this.currentPlayer;
+                this.updateBoard();
+
+                const gameResult = this.checkWinner();
+                if (gameResult) {
+                    this.winner = gameResult;
+                    this.isGameActive = false;
+                    this.updateScores(gameResult);
+                } else {
+                    this.currentPlayer = this.currentPlayer === '○' ? '×' : '○';
+                }
+
+                this.updateStatus();
+
+                if (this.gameMode === 'cpu' && this.currentPlayer === '×' && this.isGameActive) {
+                    setTimeout(() => this.cpuMove(), 500);
+                }
+            }
+
+            cpuMove() {
+                if (this.currentPlayer !== '×' || this.gameMode !== 'cpu' || !this.isGameActive || this.winner) return;
+
+                this.isThinking = true;
+                this.updateStatus();
+
+                setTimeout(() => {
+                    const move = this.getBestMove();
+                    if (move) {
+                        this.board[move[0]][move[1]] = '×';
+                        this.updateBoard();
+
+                        const gameResult = this.checkWinner();
+                        if (gameResult) {
+                            this.winner = gameResult;
+                            this.isGameActive = false;
+                            this.updateScores(gameResult);
+                        } else {
+                            this.currentPlayer = '○';
+                        }
+                    }
+                    this.isThinking = false;
+                    this.updateStatus();
+                }, 500);
+            }
+
+            getBestMove() {
+                const size = this.boardSize;
+                
+                // 勝利できる手があるかチェック
+                for (let i = 0; i < size; i++) {
+                    for (let j = 0; j < size; j++) {
+                        if (this.board[i][j] === '') {
+                            const tempBoard = this.board.map(row => [...row]);
+                            tempBoard[i][j] = '×';
+                            if (this.checkWinnerForBoard(tempBoard) === '×') {
+                                return [i, j];
+                            }
+                        }
+                    }
+                }
+
+                // プレイヤーの勝利を阻止
+                for (let i = 0; i < size; i++) {
+                    for (let j = 0; j < size; j++) {
+                        if (this.board[i][j] === '') {
+                            const tempBoard = this.board.map(row => [...row]);
+                            tempBoard[i][j] = '○';
+                            if (this.checkWinnerForBoard(tempBoard) === '○') {
+                                return [i, j];
+                            }
+                        }
+                    }
+                }
+
+                // 中央を優先
+                const center = Math.floor(size / 2);
+                if (this.board[center][center] === '') {
+                    return [center, center];
+                }
+
+                // ランダムな空きマスを選択
+                const emptyCells = [];
+                for (let i = 0; i < size; i++) {
+                    for (let j = 0; j < size; j++) {
+                        if (this.board[i][j] === '') {
+                            emptyCells.push([i, j]);
+                        }
+                    }
+                }
+
+                if (emptyCells.length > 0) {
+                    return emptyCells[Math.floor(Math.random() * emptyCells.length)];
+                }
+
+                return null;
+            }
+
+            checkWinner() {
+                return this.checkWinnerForBoard(this.board);
+            }
+
+            checkWinnerForBoard(board) {
+                const size = board.length;
+                const winLength = size === 3 ? 3 : 4;
+
+                // 行、列、対角線をチェック
+                for (let i = 0; i < size; i++) {
+                    for (let j = 0; j < size; j++) {
+                        if (board[i][j] === '') continue;
+
+                        const player = board[i][j];
+
+                        // 横方向
+                        if (j <= size - winLength) {
+                            let count = 0;
+                            for (let k = 0; k < winLength; k++) {
+                                if (board[i][j + k] === player) count++;
+                            }
+                            if (count === winLength) return player;
+                        }
+
+                        // 縦方向
+                        if (i <= size - winLength) {
+                            let count = 0;
+                            for (let k = 0; k < winLength; k++) {
+                                if (board[i + k][j] === player) count++;
+                            }
+                            if (count === winLength) return player;
+                        }
+
+                        // 右下対角線
+                        if (i <= size - winLength && j <= size - winLength) {
+                            let count = 0;
+                            for (let k = 0; k < winLength; k++) {
+                                if (board[i + k][j + k] === player) count++;
+                            }
+                            if (count === winLength) return player;
+                        }
+
+                        // 左下対角線
+                        if (i <= size - winLength && j >= winLength - 1) {
+                            let count = 0;
+                            for (let k = 0; k < winLength; k++) {
+                                if (board[i + k][j - k] === player) count++;
+                            }
+                            if (count === winLength) return player;
+                        }
+                    }
+                }
+
+                // 引き分けチェック
+                const isFull = board.every(row => row.every(cell => cell !== ''));
+                if (isFull) return 'draw';
+
+                return null;
+            }
+
+            updateScores(result) {
+                if (result === '○' && this.gameMode === 'cpu') {
+                    this.scores.player++;
+                } else if (result === '×' && this.gameMode === 'cpu') {
+                    this.scores.cpu++;
+                } else if (result === 'draw') {
+                    this.scores.draws++;
+                }
+                this.updateScoreboard();
+            }
+
+            updateScoreboard() {
+                this.playerScore.textContent = this.scores.player;
+                this.drawScore.textContent = this.scores.draws;
+                this.cpuScore.textContent = this.scores.cpu;
+            }
+
+            updateStatus() {
+                let message = '';
+                let className = 'status-normal';
+
+                if (this.winner === 'draw') {
+                    message = '引き分け！';
+                    className = 'status-draw';
+                } else if (this.winner) {
+                    if (this.gameMode === 'cpu') {
+                        message = this.winner === '○' ? 'あなたの勝ち！すごいね！' : 'CPUの勝ち！1P雑魚！';
+                    } else {
+                        message = `${this.winner}の勝ち！`;
+                    }
+                    className = 'status-winner';
+                } else if (this.isThinking) {
+                    message = 'CPUが考え中...';
+                    className = 'status-thinking';
+                } else {
+                    if (this.gameMode === 'cpu') {
+                        message = this.currentPlayer === '○' ? 'あなたのターン' : 'CPUのターン';
+                    } else {
+                        message = `${this.currentPlayer}のターン`;
+                    }
+                }
+
+                this.statusElement.textContent = message;
+                this.statusElement.className = `status-message ${className}`;
+                
+                // ボードの状態も更新（重要：これが抜けていた）
+                this.updateBoard();
+            }
+
+            resetGame() {
+                this.initBoard();
+            }
+        }
+
+        // ゲーム開始
+        window.addEventListener('DOMContentLoaded', () => {
+            new TicTacToeGame();
+        });
+    </script>
+</body>
+</html>
